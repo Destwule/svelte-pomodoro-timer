@@ -1,10 +1,10 @@
 <script>
-    let { takeBreak } = $props()
+    let { prompt, action_func, btn_title } = $props()
 </script>
 
 <div class="work-done">
-    <p>Work Done</p>
-    <button onclick={takeBreak}>Take Break</button>
+    <p>{prompt}</p>
+    <button onclick={action_func}>{btn_title}</button>
 </div>
 
 <style>
@@ -12,5 +12,6 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 2rem;
     }
 </style>
