@@ -12,13 +12,16 @@
 
   let isVisible = $state(false);
 
-  let breaksBeforeMilestone = 4
-  let longBreakMinutes = $state(5)
+  let storedLongBreak = localStorage.getItem('longBreakMinutes');
   let storedBreaks = localStorage.getItem('breaks')
-  let initialBreaks = (
-    storedBreaks && !isNaN(parseInt(storedBreaks)) ? parseInt(storedBreaks) : 0
-  )
+  let initialBreaks = (storedBreaks && !isNaN(parseInt(storedBreaks)) ? parseInt(storedBreaks) : 0);
   let currentBreaks = $state(initialBreaks)
+  let longBreakMinutes = $state(
+  storedLongBreak && !isNaN(parseFloat(storedLongBreak)) ? parseFloat(storedLongBreak) : 0.4
+  );
+
+  let breaksBeforeMilestone = 4
+  
 
   let breakTime = 1
   let workTime = 5
@@ -40,7 +43,11 @@
   let onBreak = $state(savedOnBreak)
   let isRunning = $state(false)
 
-  let initial_seconds = $state(onBreak ? getSeconds(break_minutes) : getSeconds(work_minutes));
+  let initial_seconds = $state(
+    onBreak 
+      ? (currentBreaks === 4 ? getSeconds(longBreakMinutes) : getSeconds(break_minutes))
+      : getSeconds(work_minutes)
+  );
   
   let totalSeconds = $state(
     savedTotalSeconds && !isNaN(parseInt(savedTotalSeconds)) 
@@ -72,10 +79,14 @@
       longBreakMinutes = parsedLongBreak
     }
 
-    if (!onBreak) {
+    // Update the current "Goal" and "Live" timer based on whichever mode you're in
+    if (onBreak) {
+      initial_seconds = (currentBreaks === 4) ? getSeconds(longBreakMinutes) : getSeconds(break_minutes);
+    } else {
       initial_seconds = getSeconds(work_minutes);
-      totalSeconds = initial_seconds;
     }
+    
+    totalSeconds = initial_seconds;
   }
 
   function toggle_isVisible() {
@@ -145,10 +156,11 @@
     document.title = isRunning ? `${display} Pomodoro` : 'Pomodoro Timer'
   })
 
-  $effect(() => {
-    localStorage.setItem('workMinutes', work_minutes.toString())
-    localStorage.setItem('breakMinutes', break_minutes.toString())
-  })
+   $effect(() => {
+    localStorage.setItem('workMinutes', work_minutes.toString());
+    localStorage.setItem('breakMinutes', break_minutes.toString());
+    localStorage.setItem('longBreakMinutes', longBreakMinutes.toString()); // Add this line!
+  });
 
   $effect(() => {
     localStorage.setItem('breaks', currentBreaks.toString())
