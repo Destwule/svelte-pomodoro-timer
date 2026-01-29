@@ -17,14 +17,14 @@
   let initialBreaks = (storedBreaks && !isNaN(parseInt(storedBreaks)) ? parseInt(storedBreaks) : 0);
   let currentBreaks = $state(initialBreaks)
   let longBreakMinutes = $state(
-  storedLongBreak && !isNaN(parseFloat(storedLongBreak)) ? parseFloat(storedLongBreak) : 0.4
+  storedLongBreak && !isNaN(parseFloat(storedLongBreak)) ? parseFloat(storedLongBreak) : 15
   );
 
   let breaksBeforeMilestone = 4
   
 
-  let breakTime = 1
-  let workTime = 5
+  let breakTime = 5
+  let workTime = 25
   let default_minutes = { break: breakTime, work: workTime, longBreak: longBreakMinutes }
   let breakTimeInMinutes = localStorage.getItem('breakMinutes')
   let workTimeInMinutes = localStorage.getItem('workMinutes')
