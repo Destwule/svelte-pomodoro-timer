@@ -1,0 +1,10 @@
+The "Resume on Reload" Logic
+The Goal: Don't just remember the time; remember the context.
+
+onBreak: Remembers if we were resting or working. (The Mode)
+
+initial_seconds: Remembers the full length of the timer (e.g., 25:00). (The Total)
+
+totalSeconds: Remembers exactly where the countdown stopped (e.g., 14:32). (The Progress)
+
+Why? If we only save #3, the progress bar thinks the timer "started" at 14:32 and looks full (100%). By saving #2 and #3, the bar knows it's only half-done.

@@ -7,21 +7,46 @@
   import ProgressBar from '$lib/pomodoro_timer/ProgressBar.svelte';
   import Timer from '$lib/pomodoro_timer/Timer.svelte';
   import ActionModal from '$lib/pomodoro_timer/ActionModal.svelte';
+  import Settings from '$lib/pomodoro_timer/Settings.svelte';
+  import settingsIcon from './assets/setting.svg'
 
-  let consecutiveBreaks = 4
-  let consecutiveBreakMinutes = 0.4
+  let isVisible = $state(false);
+
+  let breaksBeforeMilestone = 4
+  let longBreakMinutes = $state(0.4)
   let storedBreaks = localStorage.getItem('breaks')
   let initialBreaks = (
     storedBreaks && !isNaN(parseInt(storedBreaks)) ? parseInt(storedBreaks) : 0
   )
   let currentBreaks = $state(initialBreaks)
 
-  let break_minutes = 0.04
-  let work_minutes = 0.05
-  let onBreak = $state(false)
+  let breakTime = 0.4
+  let workTime = 0.3
+  let default_minutes = { break: breakTime, work: workTime, longBreak: longBreakMinutes }
+  let breakTimeInMinutes = localStorage.getItem('breakMinutes')
+  let workTimeInMinutes = localStorage.getItem('workMinutes')
+
+  let break_minutes = $state(
+      breakTimeInMinutes && !isNaN(parseFloat(breakTimeInMinutes)) ? parseFloat(breakTimeInMinutes) : breakTime
+    )
+  let work_minutes = $state(
+      workTimeInMinutes && !isNaN(parseFloat(workTimeInMinutes)) ? parseFloat(workTimeInMinutes) : workTime
+    )
+
+
+  let savedOnBreak = localStorage.getItem('onBreak') === 'true';
+  let savedTotalSeconds = localStorage.getItem('savedSeconds')
+  
+  let onBreak = $state(savedOnBreak)
   let isRunning = $state(false)
-  let initial_seconds = $state(getSeconds(work_minutes))
-  let totalSeconds = $state(initial_seconds)
+
+  let initial_seconds = $state(onBreak ? getSeconds(break_minutes) : getSeconds(work_minutes));
+  
+  let totalSeconds = $state(
+    savedTotalSeconds && !isNaN(parseInt(savedTotalSeconds)) 
+    ? parseInt(savedTotalSeconds) 
+    : initial_seconds
+  );
   let progress = $derived((totalSeconds / initial_seconds) * 100)
 
   let display = $derived.by(() => {
@@ -30,6 +55,33 @@
 
     return `${padStart(minutes)}:${padStart(seconds)}`
   })
+
+  function updateSettings(newBreak, newWork, newLongBreak) {
+    let parsedBreak = parseFloat(newBreak)
+    if (!isNaN(parsedBreak) && parsedBreak > 0) {
+      break_minutes = parsedBreak
+    }
+
+    let parsedWork = parseFloat(newWork)
+    if (!isNaN(parsedWork) && parsedWork > 0) {
+      work_minutes = parsedWork
+    }
+
+    let parsedLongBreak = parseFloat(newLongBreak)
+    if (!isNaN(parsedLongBreak) && parsedLongBreak > 0) {
+      longBreakMinutes = parsedLongBreak
+    }
+
+    if (!onBreak) {
+      initial_seconds = getSeconds(work_minutes);
+      totalSeconds = initial_seconds;
+    }
+  }
+
+  function toggle_isVisible() {
+    isVisible = !isVisible
+  }
+
 
   function getSeconds(minute) {
     return minute * 60
@@ -67,10 +119,9 @@
   function takeBreak() {
     if (!onBreak) {
       onBreak = true
-      updateBreaks()
 
       if (currentBreaks === 4) {
-        initial_seconds = getSeconds(consecutiveBreakMinutes);
+        initial_seconds = getSeconds(longBreakMinutes);
       }
       else {
         initial_seconds = getSeconds(break_minutes);
@@ -81,6 +132,8 @@
 
       if (currentBreaks >= 4) {
         resetCurrentBreaks()
+      } else {
+        updateBreaks()
       }
     }
 
@@ -93,8 +146,23 @@
   })
 
   $effect(() => {
+    localStorage.setItem('workMinutes', work_minutes.toString())
+    localStorage.setItem('breakMinutes', break_minutes.toString())
+  })
+
+  $effect(() => {
     localStorage.setItem('breaks', currentBreaks.toString())
   })
+
+  $effect(() => {
+    localStorage.setItem('onBreak', onBreak.toString());
+  });
+
+  $effect(() => {
+    // We only want to save seconds if the timer is actually running or paused
+    // If it's 0, it might be better to let it reset on next reload
+    localStorage.setItem('savedSeconds', totalSeconds.toString());
+  });
 
   $effect(() => {
     if (!isRunning) return null
@@ -116,7 +184,11 @@
 <main>
   <h1>{onBreak ? 'Break' : 'Work'} Time</h1>
 
-  <div class="pomodoro-container">
+  <button class="settings" onclick={toggle_isVisible}>
+      <img src={settingsIcon} alt="Settings Icon">
+  </button>
+  
+  <div class="pomodoro-container container-center-col">
     
     {#if totalSeconds <= 0}
       {#if onBreak}
@@ -140,7 +212,15 @@
     {/if}
   
   </div>
-  <p>Consecutive Breaks {currentBreaks} / {consecutiveBreaks}</p>
+  <p>Consecutive Breaks {currentBreaks} / {breaksBeforeMilestone}</p>
+    
+
+  <!-- SETTINGS SECTION -->
+  <Settings
+    {toggle_isVisible} {isVisible} {updateSettings}
+    currentWork={work_minutes} currentBreak={break_minutes}
+    {default_minutes}
+  />
 </main>
 
 
@@ -149,23 +229,30 @@
     width: 100%;
     height: 100vh;
 
+
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
   }
 
+  .settings {
+    position: fixed;
+    top: 5%;
+    right: 5%;
+
+    border-radius: 100% !important;
+    padding: unset;
+    padding: 0.5em;
+  }
+
   .pomodoro-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
+    gap: 1em;
 
     padding: 1rem;
     margin: 1em;
     background: #000;
     border-radius: 0.5rem;
-    box-shadow: 2px 5px 9px #555;
+    box-shadow: var(--BOX-SHADOW);
   }
 </style>

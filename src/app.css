@@ -12,6 +12,7 @@
   --SHADOW-BTN-PRIMARY: hsl(16 100 90);
 
   --COLOR-BG: whitesmoke;
+  --BOX-SHADOW: 2px 5px 9px #555;
 }
 
 html, body {
@@ -26,6 +27,10 @@ body {
   font-family: monospace;
   font-weight: bolder;
 
+}
+
+img {
+  display: block;
 }
 
 button {
@@ -43,6 +48,31 @@ button:hover {
   box-shadow: 0 4px 5px var(--SHADOW-BTN-PRIMARY);
 }
 
-p {
+p, label {
   font-size: 1.2em;
+}
+
+input[type='number'] {
+  background: #111;
+  color: var(--COLOR-BG);
+  font-weight: bolder;
+  font: inherit;
+  padding: 0.2em;
+  
+  border: 1px solid #fff;
+  height: 30px;
+  width: 100px;
+}
+
+.container-center-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.buttons {
+  width: 100%;
+  display: flex;
+  gap: 1em;
 }
